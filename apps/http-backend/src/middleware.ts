@@ -7,7 +7,6 @@ interface DecodedToken {
     [key: string]: any;
 }
 
-// Extindem interfața Request ca să aibă userId
 export interface AuthenticatedRequest extends Request {
     userId?: string;
 }

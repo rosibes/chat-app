@@ -83,6 +83,7 @@ app.post("/signin", async (req: Request, res: Response) => {
                 email: username,
             }
         });
+        console.log("jwt: ", JWT_SECRET)
 
         if (!existingUser) {
             res.status(401).json({
@@ -111,7 +112,7 @@ app.post("/signin", async (req: Request, res: Response) => {
         return
 
     } catch (err) {
-        console.error('Error during signup:', err);
+        console.error('Error during signin:', err);
         res.status(500).json({
             message: "Internal server error"
         });
@@ -119,20 +120,52 @@ app.post("/signin", async (req: Request, res: Response) => {
     }
 })
 
-app.post("/room", authMiddleware, (req, res) => {
+app.post("/room", authMiddleware, async (req: Request, res: Response) => {
 
-    const data = CreateRoomSchema.safeParse(req.body)
-    if (!data.success) {
-        res.json({
-            message: "Invalid inputs"
-        })
+    const parsedData = CreateRoomSchema.safeParse(req.body);
+    if (!parsedData.success) {
+        res.status(400).json({
+            message: "Invalid inputs",
+            errors: parsedData.error.flatten(),
+        });
         return
     }
-    res.json({
-        roomId: 123
-    })
-})
+    //@ts-ignore
+    const userId = req.userId;
 
+    try {
+        const existingRoom = await prismaClient.room.findUnique({
+            where: { slug: parsedData.data.name },
+        });
+
+        if (existingRoom) {
+            res.status(409).json({
+                message: "Room with this name already exists!",
+            });
+            return
+        }
+
+        const room = await prismaClient.room.create({
+            data: {
+                slug: parsedData.data.name,
+                adminId: userId,
+            },
+        });
+
+        res.status(201).json({
+            roomId: room.id,
+            message: "Room created successfully",
+        });
+        return
+
+    } catch (err) {
+        console.error("Error creating room:", err);
+        res.status(500).json({
+            message: "Internal server error. Could not create the room.",
+        });
+        return
+    }
+});
 
 app.listen(3001, () => {
     console.log(`Server is running on port ${3001}`);
