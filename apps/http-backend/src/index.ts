@@ -167,6 +167,30 @@ app.post("/room", authMiddleware, async (req: Request, res: Response) => {
     }
 });
 
+app.get("/chats/:roomId", async (req: Request, res: Response) => {
+    const { roomId } = req.params;
+    const parsedRoomId = Number(roomId);
+
+    if (isNaN(parsedRoomId)) {
+        res.status(400).json({ error: "Invalid roomId" });
+        return
+    }
+    try {
+        const messages = await prismaClient.chat.findMany({
+            where: { roomId: parsedRoomId },
+            orderBy: { id: "desc" },
+            take: 50
+        });
+        res.status(200).json({ messages });
+        return
+
+    } catch (error) {
+        console.error("Failed to fetch messages:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+        return
+    }
+})
+
 app.listen(3001, () => {
     console.log(`Server is running on port ${3001}`);
 });
