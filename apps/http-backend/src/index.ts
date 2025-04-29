@@ -154,6 +154,7 @@ app.post("/room", authMiddleware, async (req: Request, res: Response) => {
 
         res.status(201).json({
             roomId: room.id,
+            slug: room.slug,
             message: "Room created successfully",
         });
         return
@@ -186,6 +187,29 @@ app.get("/chats/:roomId", async (req: Request, res: Response) => {
 
     } catch (error) {
         console.error("Failed to fetch messages:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+        return
+    }
+})
+
+app.get("/room/:slug", async (req: Request, res: Response) => {
+    const { slug } = req.params;
+
+    try {
+        const room = await prismaClient.room.findUnique({
+            where: { slug },
+        });
+
+        if (!room) {
+            res.status(404).json({ error: "Room not found" });
+            return
+        }
+
+        res.status(200).json({ room });
+        return
+
+    } catch (error) {
+        console.error("Failed to fetch room:", error);
         res.status(500).json({ error: "Internal Server Error" });
         return
     }
