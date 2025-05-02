@@ -9,6 +9,7 @@ import { Particles } from "../components/Particles";
 import { Button } from "../components/Button";
 import { Heading } from "../components/Heading";
 import { Input } from "../components/Input";
+import { join } from "path";
 
 export default function Home() {
   const [roomId, setRoomId] = useState("")
@@ -18,47 +19,57 @@ export default function Home() {
   const [token, setToken] = useState<string | null>(null);
   const router = useRouter()
 
-  useEffect(() => {
+  const checkAuthAndProceed = (action: () => void) => {
     const token = localStorage.getItem("token")
-    setToken(token)
-
     if (!token) {
-      toast.error("You are not logged in. Redirecting...")
-
-      const redirectTimer = setTimeout(() => {
-        router.push('/signin')
-      }, 1000)
-
-      // Cleanup la unmount
-      return () => clearTimeout(redirectTimer)
+      toast.error("You need to be logged in to perform this action!")
+      setTimeout(() => router.push('/signin'), 1500)
+    } else {
+      action()
     }
-  }, [router])
+  }
 
 
   const createRoom = async () => {
-    if (!roomName.trim()) {
-      toast.error("Please enter a Room Name!");
-      return;
-    }
+    checkAuthAndProceed(async () => {
+      if (!roomName.trim()) {
+        toast.error("Please enter a Room Name!")
+        return
+      }
+
+      if (roomName.length < 3) {
+        toast.error("Password should be at least 3 characters.");
+        return;
+      }
+
+      setLoading(true)
+      try {
+        const token = localStorage.getItem("token")
+        const response = await axios.post(`${BACKEND_URL}/room`,
+          { name: roomName.trim() },
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+        toast.success(`Room "${response.data.slug}" created successfully!`)
+        router.push(`/room/${response.data.slug}`)
+      } catch (err) {
+        console.error("Failed to create room:", err)
+        toast.error('Failed to create room. Please try again.')
+      } finally {
+        setLoading(false)
+      }
+    })
+  }
 
 
-    try {
-
-      const response = await axios.post(`${BACKEND_URL}/room`,
-        { name: roomName.trim() },
-        {
-          headers: { Authorization: `Bearer ${token}`, },
-        }
-      );
-      setRoomId(response.data.roomId);
-      toast.success(`Room "${response.data.slug}" created successfully!`);
-      router.push(`/room/${response.data.slug}`);
-
-    } catch (err) {
-      console.error("Failed to create room:", err);
-      toast.error('Failed to create room. Please try again.');
-    }
-  };
+  const joinRoom = () => {
+    checkAuthAndProceed(() => {
+      if (!roomId.trim()) {
+        toast.error("Please enter a Room Name!")
+        return
+      }
+      router.push(`/room/${roomId}`)
+    })
+  }
 
 
   return (
@@ -102,8 +113,6 @@ export default function Home() {
 
         {showJoinRoom && (
           <div className="mb-4 flex w-full justify-center items-center">
-
-
             <Input
               value={roomId}
               onChange={(e) => setRoomId(e.target.value)}
@@ -112,13 +121,7 @@ export default function Home() {
             />
 
             <Button
-              onClick={() => {
-                if (!roomId.trim()) {
-                  toast.error("Please enter a Room Name!");
-                  return;
-                }
-                router.push(`room/${roomId}`);
-              }}
+              onClick={joinRoom}
               text="Join a Room"
               size="sm"
               color="purple"
