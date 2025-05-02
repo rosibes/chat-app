@@ -83,7 +83,6 @@ app.post("/signin", async (req: Request, res: Response) => {
                 email: username,
             }
         });
-        console.log("jwt: ", JWT_SECRET)
 
         if (!existingUser) {
             res.status(401).json({
@@ -121,7 +120,6 @@ app.post("/signin", async (req: Request, res: Response) => {
 })
 
 app.post("/room", authMiddleware, async (req: Request, res: Response) => {
-
     const parsedData = CreateRoomSchema.safeParse(req.body);
     if (!parsedData.success) {
         res.status(400).json({
@@ -179,7 +177,7 @@ app.get("/chats/:roomId", async (req: Request, res: Response) => {
     try {
         const messages = await prismaClient.chat.findMany({
             where: { roomId: parsedRoomId },
-            orderBy: { id: "desc" },
+            orderBy: { id: "asc" },
             take: 50
         });
         res.status(200).json({ messages });
