@@ -1,17 +1,30 @@
-import axios from "axios";
 import { BACKEND_URL } from "../../config";
 import { ChatRoom } from "../../../components/ChatRoom";
 import { notFound } from 'next/navigation';
 
+interface RoomResponse {
+    room: {
+        id: string;
+    };
+}
+
 async function getRoomId(slug: string) {
     try {
-        const response = await axios.get(`${BACKEND_URL}/room/${slug}`);
-        return { id: response.data.room.id, error: null };
-    } catch (error: any) {
-        if (error.response?.status === 404) {
-            return { id: null, error: "Room not found" };
+        const response = await fetch(`${BACKEND_URL}/room/${slug}`, {
+            // cache: 'no-store' // Adaugă asta dacă vrei să eviti caching
+        });
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                return { id: null, error: "Room not found" };
+            }
+            throw new Error('Failed to fetch room');
         }
-        return { id: null, error: error.response?.data?.error || "Unknown error occurred" };
+
+        const data: RoomResponse = await response.json();
+        return { id: data.room.id, error: null };
+    } catch (error) {
+        return { id: null, error: error instanceof Error ? error.message : "Unknown error occurred" };
     }
 }
 
@@ -21,11 +34,8 @@ interface PageProps {
     };
 }
 
-export default async function ChatRoomPage({
-    params
-}: PageProps) {
-    const slug = params.slug;
-    const { id, error } = await getRoomId(slug);
+export default async function ChatRoomPage({ params }: PageProps) {
+    const { id, error } = await getRoomId(params.slug);
 
     if (error || !id) {
         notFound();
