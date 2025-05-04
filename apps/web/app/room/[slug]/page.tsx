@@ -10,9 +10,7 @@ interface RoomResponse {
 
 async function getRoomId(slug: string) {
     try {
-        const response = await fetch(`${BACKEND_URL}/room/${slug}`, {
-            // cache: 'no-store' // Adaugă asta dacă vrei să eviti caching
-        });
+        const response = await fetch(`${BACKEND_URL}/room/${slug}`);
 
         if (!response.ok) {
             if (response.status === 404) {
@@ -28,13 +26,11 @@ async function getRoomId(slug: string) {
     }
 }
 
-interface PageProps {
-    params: {
-        slug: string;
-    };
-}
-
-export default async function ChatRoomPage({ params }: PageProps) {
+export default async function Page({
+    params
+}: {
+    params: { slug: string }
+}) {
     const { id, error } = await getRoomId(params.slug);
 
     if (error || !id) {
