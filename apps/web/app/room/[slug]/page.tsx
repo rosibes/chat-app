@@ -26,12 +26,15 @@ async function getRoomId(slug: string) {
     }
 }
 
-export default async function Page({
-    params
-}: {
-    params: { slug: string }
-}) {
-    const { id, error } = await getRoomId(params.slug);
+// Utilizăm parametrul generic pentru a evita problemele de tip
+export default async function Page({ params }: { params: Record<string, string> }) {
+    const slug = params.slug;
+
+    if (!slug) {
+        notFound();
+    }
+
+    const { id, error } = await getRoomId(slug);
 
     if (error || !id) {
         notFound();
