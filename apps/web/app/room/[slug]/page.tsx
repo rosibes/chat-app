@@ -27,13 +27,14 @@ async function getRoomId(slug: string) {
     }
 }
 
-// Folosește interfața corectă pentru Next.js 15
-interface PageProps {
+// Updated PageProps to match Next.js 15 expectations for async components
+type PageProps = {
     params: { slug: string };
-}
+    searchParams: Record<string, string | string[] | undefined>;
+};
 
-export default async function Page(props: PageProps) {
-    const slug = props.params.slug;
+export default async function Page({ params }: PageProps) {
+    const { slug } = params;
 
     if (!slug) {
         notFound();
