@@ -16,13 +16,13 @@ async function getRoomId(slug: string) {
     }
 }
 
-export default async function ChatRoom1({
-    params
-}: {
+type PageProps = {
     params: {
-        slug: string
-    }
-}) {
+        slug: string;
+    };
+};
+
+export default async function ChatRoom1({ params }: PageProps) {
     const slug = params.slug;
     const { id, error } = await getRoomId(slug);
 
