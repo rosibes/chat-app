@@ -9,19 +9,18 @@ import { Particles } from "../components/Particles";
 import { Button } from "../components/Button";
 import { Heading } from "../components/Heading";
 import { Input } from "../components/Input";
-import { join } from "path";
+import { isTokenExpired } from "../utils/token";
 
 export default function Home() {
   const [roomId, setRoomId] = useState("")
   const [roomName, setRoomName] = useState("");
   const [loading, setLoading] = useState(false);
   const [showJoinRoom, setShowJoinRoom] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
   const router = useRouter()
 
   const checkAuthAndProceed = (action: () => void) => {
     const token = localStorage.getItem("token")
-    if (!token) {
+    if (!token || isTokenExpired(token)) {
       toast.error("You need to be logged in to perform this action!")
       setTimeout(() => router.push('/signin'), 1500)
     } else {
