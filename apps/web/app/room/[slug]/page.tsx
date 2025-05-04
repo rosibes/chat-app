@@ -1,6 +1,7 @@
 import { BACKEND_URL } from "../../config";
 import { ChatRoom } from "../../../components/ChatRoom";
 import { notFound } from 'next/navigation';
+import type { Metadata, ResolvingMetadata } from 'next';
 
 interface RoomResponse {
     room: {
@@ -26,9 +27,13 @@ async function getRoomId(slug: string) {
     }
 }
 
-// Utilizăm parametrul generic pentru a evita problemele de tip
-export default async function Page({ params }: { params: Record<string, string> }) {
-    const slug = params.slug;
+// Folosește interfața corectă pentru Next.js 15
+interface PageProps {
+    params: { slug: string };
+}
+
+export default async function Page(props: PageProps) {
+    const slug = props.params.slug;
 
     if (!slug) {
         notFound();
