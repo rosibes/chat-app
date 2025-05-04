@@ -1,4 +1,3 @@
-// app/room/[slug]/page.tsx
 import axios from "axios";
 import { BACKEND_URL } from "../../config";
 import { ChatRoom } from "../../../components/ChatRoom";
@@ -16,13 +15,15 @@ async function getRoomId(slug: string) {
     }
 }
 
-type PageProps = {
+interface PageProps {
     params: {
         slug: string;
     };
-};
+}
 
-export default async function ChatRoom1({ params }: PageProps) {
+export default async function ChatRoomPage({
+    params
+}: PageProps) {
     const slug = params.slug;
     const { id, error } = await getRoomId(slug);
 
@@ -30,5 +31,5 @@ export default async function ChatRoom1({ params }: PageProps) {
         notFound();
     }
 
-    return <ChatRoom id={id} />
+    return <ChatRoom id={id} />;
 }
